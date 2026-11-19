@@ -1,0 +1,36 @@
+# 构建产物
+esim-app/.gradle/
+esim-app/build/
+esim-app/app/build/
+esim-app/local.properties
+.gradle/
+build/
+
+# 签名密钥（绝不入库）
+*.jks
+*.keystore
+keystore.properties
+
+# 本地工具链/下载/临时
+ndk.dmg
+ndkroot
+/src/
+/build/
+/pkg/
+/q/
+/plain/
+/apk/
+*.zip
+*.dmg
+rel.json
+uim.json
+qmierr.h
+c.txt
+e.txt
+shot*.png
+qrtr_probe
+
+# IDE / 系统
+.idea/
+.DS_Store
+*.iml
