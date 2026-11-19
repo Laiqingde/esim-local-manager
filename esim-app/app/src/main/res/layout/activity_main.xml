@@ -1,66 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
-
-    <TextView
-        android:id="@+id/header"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="…"
-        android:textSize="15sp"
-        android:paddingBottom="12dp" />
-
+    android:layout_height="match_parent">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingBottom="8dp">
-        <Button
-            android:id="@+id/btnRefresh"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="刷新" />
-        <Button
-            android:id="@+id/btnDownload"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="下载 eSIM" />
-    </LinearLayout>
+        android:orientation="vertical"
+        android:padding="20dp">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="3">
-        <LinearLayout
-            android:id="@+id/list"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-    </ScrollView>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="日志"
-        android:textStyle="bold"
-        android:paddingTop="8dp" />
-    <ScrollView
-        android:id="@+id/logScroll"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="2"
-        android:background="#11000000">
         <TextView
-            android:id="@+id/log"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="国行 eSIM 解锁"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:paddingBottom="4dp" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="绕过三星国行机的 eSIM 区域/数量限制，让系统原生「添加 eSIM」可加境外卡。"
+            android:textSize="13sp"
+            android:paddingBottom="20dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#1A3F51B5"
+            android:padding="16dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="启用解锁"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+            <Switch
+                android:id="@+id/switchUnlock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="…"
+            android:textSize="13sp"
             android:fontFamily="monospace"
-            android:textSize="11sp"
-            android:padding="8dp" />
-    </ScrollView>
-</LinearLayout>
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp" />
+
+        <Button
+            android:id="@+id/btnOpenSim"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="打开系统 SIM 管理器" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="24dp"
+            android:textSize="12sp"
+            android:text="说明\n\n• 需要 root（Magisk / KernelSU / APatch）。\n\n• 开关打开后：以 root 临时修改设备区域标识（sales_code / countryiso_code，纯国行还含 carrierid），并重启系统设置进程。之后系统原生「添加 eSIM」即可添加境外运营商 eSIM，且「最多 2 张」数量上限解除为 20 张。\n\n• 全部为运行时修改，重启手机自动还原，不写系统分区、不动 Bootloader。想恢复随时关掉开关。\n\n• 添加境外 eSIM 的下载过程由系统原生 LPA 完成，新卡自动出现在 SIM 管理器中。\n\n原理：三星国行限制在 LPA 应用层按设备区域属性判断，本工具临时改这些属性即可解除，芯片层无限制。" />
+    </LinearLayout>
+</ScrollView>

@@ -133,3 +133,44 @@
 - App 加固：refresh() 在缓存 slot 读失败时自动重置 slot 并重新探测；下载成功后等 2s 再刷新，
   避免读到空列表。
 - QMI UIM 错误观察：slot 不对/卡忙时 error 码随 slot 不同(48/80/94)，正确 slot 才返回 eidValue。
+
+## [2.0] — 2026-11-19：重大转向——区域解锁（resetprop）方案 + App 改版
+
+### 结论（反编译 + 实机验证三星 LPA 的全部区域闸）
+反编译 `com.samsung.euicc`(EuiccService) 与 `com.samsung.android.app.telephonyui`，
+定位到国行 eSIM 的全部限制点，均在 LPA 应用层按设备属性判断，eUICC 芯片无限制：
+
+1. 硬件硬闸 `EuiccUtils.isRestrictedProfileDownloadForChinaHW()`
+   = `"CHC".equals(ro.boot.carrierid) && !"CN".equals(ro.csc.countryiso_code)`。
+2. 下载 TLS 证书 `LocationUtils.isCHNModel()` = `"CHC".equals(ro.csc.sales_code)`；
+   为真则 `LocationInfoHandler` 用**真实 GPS 坐标**判断是否在大陆
+   (`RegionPolygonChecker.isInChina()`)：大陆→中国证书(境外 SM-DP+ TLS 验不过)，境外/港澳→GSMA。
+3. eSIM 数量上限（TelephonyUI `y3.c`）= `d0.a(4) ? 2 : 20`，
+   `d0.a(4)` = `"CN".equals(ro.csc.countryiso_code)`。即国行限 2 张、非国行 20 张。
+4. `LocationUtils.isNotAllowCondition()` = `userBinary && development_settings_enabled`。
+
+### 关键差异：台版刷国行 vs 纯国行
+- 本机(台版硬件)：`ro.boot.carrierid=BRI`，硬件硬闸(1)天然不触发。
+- 纯国行：`ro.boot.carrierid=CHC`。此时若把 countryiso 改成非 CN(为解数量上限)，
+  反而触发硬闸(1)。故纯国行必须**连 ro.boot.carrierid 一起 resetprop 成非 CHC**。
+
+### 解锁配方（root + resetprop，runtime，重启还原）
+- `resetprop ro.csc.sales_code → 非CHC(TGY)`：解下载证书闸(走 GSMA)。
+- `resetprop ro.csc.countryiso_code → 非CN(HK)`：解数量上限(2→20)、且让原生 SIM 管理器显示全部 profile。
+- 纯国行额外：`resetprop ro.boot.carrierid → 非CHC`。
+- `settings put global/secure development_settings_enabled 0`：过 isNotAllowCondition。
+- `am force-stop com.samsung.android.app.telephonyui / com.android.settings`：让静态上限重算。
+实机验证：改完后原生「添加 eSIM」越过全部区域/数量闸、进入下载流程(仅因旧码在服务器端失败)，
+且系统 SIM 管理器完整显示 3 张 eSIM、恢复「添加 eSIM」入口。
+
+### 变更：App 由「QMI 管理器」改版为「国行 eSIM 解锁」开关
+- 新增 `NativeUnlock.kt`：一键开/关上述 resetprop 配方，通用适配台版刷机与纯国行
+  (自动判断 carrierid==CHC 才改 carrierid，并用 SharedPreferences 记原值以精确还原)。
+- MainActivity 精简为：解锁开关 + 状态 + 打开系统 SIM 管理器 + 说明。
+- 移除原 lpac/QMI 相关 UI 与内置二进制、okhttp/zxing 依赖、相机/网络权限(APK 更小)。
+- lpac QMI/QRTR 方案保留在 `lpac-qrtr/` 与 `tools/`，作为「不依赖厂商 LPA」的替代路线。
+
+### 无 root 可行性
+- 下载证书闸基于 GPS：人在境外(或港澳)时原生即可加境外 eSIM，无需任何修改；
+  大陆内无 root 无干净绕法(模拟定位需开发者选项，又触发 isNotAllowCondition)。
+- 故大陆内要原生体验，仍需 root(本 App)；或用 lpac 方案(需 root 但不挑地点)。
